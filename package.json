@@ -1,0 +1,39 @@
+{
+  "name": "graduation-project-depi-backend",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/1Gazzar1/Graduation-Project-DEPI-Backend#readme",
+  "bugs": {
+    "url": "https://github.com/1Gazzar1/Graduation-Project-DEPI-Backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1Gazzar1/Graduation-Project-DEPI-Backend.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx watch ./src",
+    "start": "tsx && node ./src/index.js",
+    "build": "tsc",
+    "migrate": "drizzle-kit migrate",
+    "generate": "drizzle-kit generate"
+  },
+  "keywords": [],
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.44.7",
+    "express": "^5.1.0",
+    "postgres": "^3.4.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.5",
+    "@types/node": "^24.9.1",
+    "drizzle-kit": "^0.31.6",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}
