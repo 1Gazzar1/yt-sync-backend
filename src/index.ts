@@ -12,7 +12,6 @@ app.get("/", (req, res) => {
     res.json("Hello world");
 });
 
-
 app.listen(PORT, () => {
     console.log(`listening on port ${PORT}`);
 });
