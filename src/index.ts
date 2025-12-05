@@ -1,16 +1,25 @@
-import express, { ErrorRequestHandler } from "express";
+import express from "express";
+import type { ErrorRequestHandler } from "express";
 import { CustomError } from "./errors/error";
 import { config } from "dotenv";
+import authRouter from "./routers/authRouter";
+import playlistRouter from "./routers/playlistRouter";
 
 config();
 
 const app = express();
 const PORT = process.env.PORT;
 
+app.use(express.json());
+
 app.get("/", (req, res) => {
     console.log(req.method, req.host, req.hostname);
     res.json("Hello world");
 });
+
+// routers
+app.use("/auth", authRouter);
+app.use("/playlist", playlistRouter);
 
 app.listen(PORT, () => {
     console.log(`listening on port ${PORT}`);

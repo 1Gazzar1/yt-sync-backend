@@ -21,4 +21,6 @@ export const ERRORS = {
     NOTFOUND: (message: string) => createError("NOTFOUND", 404, message),
     BAD_REQUEST: (message: string) => createError("BAD_REQUEST", 400, message),
     INTERNAL: (message: string) => createError("INTERNAL", 500, message),
+    UNAUTHORIZED: (message: string) =>
+        createError("UNAUTHORIZED", 401, message),
 } as const;
