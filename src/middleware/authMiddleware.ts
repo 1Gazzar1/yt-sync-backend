@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { ERRORS } from "../errors/error.js";
+import { ERRORS } from "@/errors/error.js";
 
 export const verifyToken = async (
     /* 

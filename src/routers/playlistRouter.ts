@@ -2,8 +2,8 @@ import { Router } from "express";
 import {
     getUserYTPlaylists,
     syncPlaylist,
-} from "../controllers/playlistController.js";
-import { verifyToken } from "../middleware/authMiddleware.js";
+} from "@/controllers/playlistController.js";
+import { verifyToken } from "@/middleware/authMiddleware.js";
 
 const playlistRouter = Router();
 

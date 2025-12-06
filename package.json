@@ -9,8 +9,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsx watch ./src",
-    "start": "tsc && node ./dist/index.js",
-    "build": "tsc"
+    "start": "node ./dist/index.js",
+    "build": "tsc && tsc-alias",
+    "build:st": "npm run build && npm run start"
   },
   "keywords": [],
   "dependencies": {
@@ -23,6 +24,7 @@
   "devDependencies": {
     "@types/express": "^5.0.5",
     "@types/node": "^24.9.1",
+    "tsc-alias": "^1.8.16",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }

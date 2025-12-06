@@ -1,10 +1,9 @@
 import type { Request, Response } from "express";
 import { google, youtube_v3 } from "googleapis";
-import { ERRORS } from "../errors/error.js";
-import type { Playlist, RequestBodyType } from "../types/types.js";
-import bree from "../bg/index.js";
-import { randomBytes } from "crypto";
-import path from "path";
+import { ERRORS } from "@/errors/error.js";
+import type { Playlist, RequestBodyType } from "@/types/types.js";
+import { scheduleBreeSyncPlaylistJob } from "@/bg/index.js";
+
 const oAuth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,
@@ -69,32 +68,6 @@ export const syncPlaylist = async (req: Request, res: Response) => {
 };
 
 // util
-async function scheduleBreeSyncPlaylistJob(
-    playlistId: string,
-    localVideoIds: string[]
-) {
-    const p = path.resolve("dist/bg/jobs/syncSongs.js");
-    await scheduleBreeJob(p, {
-        playlistId,
-        localVideoIds,
-    });
-}
-
-async function scheduleBreeJob(path: string, workerData: any) {
-    const randomChars = randomBytes(8).toString("hex");
-    const jobName = `job-${randomChars}`;
-    await bree.add({
-        name: jobName,
-        path,
-        worker: {
-            workerData: {
-                jobName,
-                ...workerData,
-            },
-        },
-    });
-    bree.run(jobName);
-}
 
 async function getVideoIds(service: youtube_v3.Youtube, playlistId: string) {
     const videos = await service.playlistItems.list({
