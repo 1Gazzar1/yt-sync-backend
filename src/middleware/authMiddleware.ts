@@ -1,9 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { google } from "googleapis";
-import { ERRORS } from "src/errors/error";
-import { Credentials, RequestBodyType } from "src/types/types";
-
-const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID);
+import { ERRORS } from "../errors/error.js";
 
 export const verifyToken = async (
     /* 
@@ -15,75 +11,20 @@ export const verifyToken = async (
     res: Response,
     next: NextFunction
 ) => {
-    const token = req.header("Authorization");
+    const access_token = req.header("Authorization");
 
-    if (!token) throw ERRORS.BAD_REQUEST("token not found");
+    if (!access_token) throw ERRORS.UNAUTHORIZED("token not found");
 
-    const _token = token.replace("Bearer ", "");
+    const _token = access_token.replace("Bearer ", "");
 
-    const ticket = await oAuth2Client.verifyIdToken({
-        idToken: _token,
-        audience: process.env.CLIENT_ID,
-    });
+    const response = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?access_token=${_token}`
+    );
+    if (!response.ok) throw ERRORS.UNAUTHORIZED("Token expired! 💩");
 
-    if (!ticket) throw ERRORS.UNAUTHORIZED("invalid token / Unauthorized");
-
-    const payLoad = ticket.getPayload();
-
-    if (!payLoad) throw ERRORS.BAD_REQUEST("token payload empty");
-
-    req.user = {
-        name: payLoad.name!,
-        email: payLoad.email!,
-        profile: payLoad.profile!,
-    };
-
-    req.token = _token;
+    req.access_token = _token;
 
     next();
 };
 
-export const refreshToken = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    /* 
-    refresh the access token via the refresh token given from the client
-    only triggers if the expiry date is less than 10 mins 
-    */
-    const { refresh_token }: RequestBodyType = req.body;
-
-    if (!refresh_token) throw ERRORS.NOTFOUND("token not found");
-
-    oAuth2Client.setCredentials({ refresh_token });
-
-    try {
-        const newCred = await oAuth2Client.refreshAccessToken();
-
-        req.credentials = newCred.credentials as any as Credentials;
-    } catch (error) {
-        throw ERRORS.UNAUTHORIZED("failed to refresh token");
-    }
-
-    next();
-};
-
-/* 
-the id token is accessed through the auth header 
-the access and refresh tokens are accessed through the req body (sent from the client)
-then at the end always send a ResponseType obj , which looks like this:  
-{
-    data: Playlist[] | Video[];
-    tokens: {
-        refresh_token: string;
-        access_token: string;
-        scope: string;
-        token_type: string;
-        id_token: string;
-        expiry_date: number;
-    };
-};
-
-the point of this is to not have a db, so the tokens are passed between the server and client constantly
-*/
+/**/

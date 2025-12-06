@@ -1,9 +1,9 @@
 import express from "express";
 import type { ErrorRequestHandler } from "express";
-import { CustomError } from "./errors/error";
+import { CustomError } from "./errors/error.js";
 import { config } from "dotenv";
-import authRouter from "./routers/authRouter";
-import playlistRouter from "./routers/playlistRouter";
+import authRouter from "./routers/authRouter.js";
+import playlistRouter from "./routers/playlistRouter.js";
 
 config();
 

@@ -1,9 +1,14 @@
 import { Router } from "express";
-import { getUserYTPlaylists } from "src/controllers/playlistController";
-import { refreshToken, verifyToken } from "src/middleware/authMiddleware";
+import {
+    getUserYTPlaylists,
+    syncPlaylist,
+} from "../controllers/playlistController.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
 
 const playlistRouter = Router();
 
-playlistRouter.post("/", verifyToken, refreshToken, getUserYTPlaylists);
+playlistRouter.post("/", verifyToken, getUserYTPlaylists);
+
+playlistRouter.post("/sync", verifyToken, syncPlaylist);
 
 export default playlistRouter;

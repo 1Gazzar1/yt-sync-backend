@@ -1,7 +1,10 @@
 import type { Request, Response } from "express";
 import { google, youtube_v3 } from "googleapis";
-import { ERRORS } from "src/errors/error";
-import type { Playlist } from "../types/types";
+import { ERRORS } from "../errors/error.js";
+import type { Playlist, RequestBodyType } from "../types/types.js";
+import bree from "../bg/index.js";
+import { randomBytes } from "crypto";
+import path from "path";
 const oAuth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,
@@ -10,7 +13,10 @@ const oAuth2Client = new google.auth.OAuth2(
 
 export const getUserYTPlaylists = async (req: Request, res: Response) => {
     // const token = req.token;
-    const { access_token, refresh_token } = req.body;
+    const { refresh_token } = req.body;
+
+    const access_token = req.access_token;
+    if (!access_token) throw ERRORS.NOTFOUND("token not found");
 
     // setting credentials for api access
     oAuth2Client.setCredentials({ access_token, refresh_token });
@@ -27,6 +33,78 @@ export const getUserYTPlaylists = async (req: Request, res: Response) => {
 
     res.status(200).json(playlists);
 };
+export const syncPlaylist = async (req: Request, res: Response) => {
+    /*
+        this endpoint takes the playlist id from query 
+        and the video (songs) ids from the body  (for now i will just download and not sync) 
+        then it will make a background job that will download all the videos(songs) 
+        and store them on /tmp/job_123/ , the client polls until job is finished 
+        then stream the songs back to the client 
+    */
+    const { videoIds }: RequestBodyType = req.body;
+
+    const access_token = req.access_token;
+    if (!access_token) throw ERRORS.NOTFOUND("token not found");
+
+    const { playlistId } = req.query;
+
+    // setting credentials for api access
+    oAuth2Client.setCredentials({ access_token });
+
+    const service = google.youtube({
+        version: "v3",
+        auth: oAuth2Client,
+    });
+
+    const vidIds = await getVideoIds(service, playlistId as string);
+
+    if (!vidIds || vidIds.length === 0)
+        throw ERRORS.NOTFOUND("No Videos Found!");
+
+    scheduleBreeSyncPlaylistJob(playlistId as string, []);
+
+    res.status(200).json({
+        message: "scheduled a job for you, come back later 🕔",
+    });
+};
+
+// util
+async function scheduleBreeSyncPlaylistJob(
+    playlistId: string,
+    localVideoIds: string[]
+) {
+    const p = path.resolve("dist/bg/jobs/syncSongs.js");
+    await scheduleBreeJob(p, {
+        playlistId,
+        localVideoIds,
+    });
+}
+
+async function scheduleBreeJob(path: string, workerData: any) {
+    const randomChars = randomBytes(8).toString("hex");
+    const jobName = `job-${randomChars}`;
+    await bree.add({
+        name: jobName,
+        path,
+        worker: {
+            workerData: {
+                jobName,
+                ...workerData,
+            },
+        },
+    });
+    bree.run(jobName);
+}
+
+async function getVideoIds(service: youtube_v3.Youtube, playlistId: string) {
+    const videos = await service.playlistItems.list({
+        playlistId: playlistId,
+        part: ["snippet"],
+    });
+    return videos.data.items
+        ?.map((vid) => vid.id)
+        .filter((id) => id !== undefined && id !== null);
+}
 
 async function getFormattedPlaylists(service: youtube_v3.Youtube) {
     const playlists = await service.playlists.list({

@@ -1,8 +1,8 @@
 import { configDotenv } from "dotenv";
 import type { Request, Response } from "express";
 import { google } from "googleapis";
-import { ERRORS } from "src/errors/error";
-import { RequestBodyType } from "src/types/types";
+import { ERRORS } from "../errors/error.js";
+import { RequestBodyType } from "../types/types.js";
 
 configDotenv();
 

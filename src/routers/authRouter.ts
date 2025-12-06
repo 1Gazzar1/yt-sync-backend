@@ -3,8 +3,8 @@ import {
     auth2Callback,
     getAuthUrl,
     revokeToken,
-} from "src/controllers/authController";
-import { verifyToken } from "src/middleware/authMiddleware";
+} from "../controllers/authController.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
 
 const authRouter = Router();
 
