@@ -1,17 +1,13 @@
 import { exec } from "child_process";
+import { promisify } from "util";
 
-export async function downloadSong(url: string, path: string) {
-    const id = new URLSearchParams(url).get("v");
+const execAsync = promisify(exec);
 
-    const { stdout, stderr } = await exec(
-        `yt-dlp -x --audio-format mp3 
-        --quiet 
-        --add-metadata  --embed-thumbnail 
-        -o "%(title)s.%(ext)s"
-        -P ${path} 
-        ${url}`
+export async function downloadSong(id: string, path: string) {
+    console.log("processing song:", id);
+    const url = `https://www.youtube.com/watch?v=${id}`;
+    await execAsync(
+        `yt-dlp -x --audio-format mp3 --quiet --add-metadata  --embed-thumbnail -o "%(title)s.%(ext)s" -P ${path} ${url}`
     );
-
-    console.log("stdout:", stdout, "song id:", id);
-    console.error("stderr:", stderr, "song id:", id);
+    console.log("🎵Done🎵");
 }

@@ -9,8 +9,3 @@ export type Playlist = {
 };
 
 export type Video = {};
-
-export type RequestBodyType = {
-    refresh_token: string;
-    [prop: string]: any;
-};

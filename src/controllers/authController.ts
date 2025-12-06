@@ -2,7 +2,6 @@ import { configDotenv } from "dotenv";
 import type { Request, Response } from "express";
 import { google } from "googleapis";
 import { ERRORS } from "@/errors/error.js";
-import { RequestBodyType } from "@/types/types.js";
 
 configDotenv();
 
@@ -29,6 +28,21 @@ export const getAuthUrl = (req: Request, res: Response) => {
     });
     // res.redirect(url);
 };
+export const refreshToken = async (req: Request, res: Response) => {
+    const refresh_token = req.body.refresh_token;
+
+    if (!refresh_token || typeof refresh_token !== "string")
+        throw ERRORS.BAD_REQUEST("Token not found or wrong format.");
+
+    oauth2Client.setCredentials({ refresh_token });
+
+    const newCred = await oauth2Client.refreshAccessToken();
+
+    res.status(200).json({
+        access_token: newCred.credentials.access_token,
+        id_token: newCred.credentials.id_token,
+    });
+};
 
 export const auth2Callback = async (req: Request, res: Response) => {
     const { code } = req.query;
@@ -40,7 +54,7 @@ export const auth2Callback = async (req: Request, res: Response) => {
 export const revokeToken = async (req: Request, res: Response) => {
     // tokens that can be revoked are refresh or access tokens
     // you can't revoke the id token (jwt)
-    const { refresh_token }: RequestBodyType = req.body;
+    const { refresh_token } = req.body;
 
     if (!refresh_token) throw ERRORS.BAD_REQUEST("refresh_token undefined");
 

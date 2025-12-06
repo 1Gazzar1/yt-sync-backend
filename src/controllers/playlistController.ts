@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
-import { google, youtube_v3 } from "googleapis";
+import { google } from "googleapis";
 import { ERRORS } from "@/errors/error.js";
-import type { Playlist, RequestBodyType } from "@/types/types.js";
 import { scheduleBreeSyncPlaylistJob } from "@/bg/index.js";
+import { getFormattedPlaylists, getVideoIds } from "@/utils/playlistUtil.js";
 
 const oAuth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
@@ -40,7 +40,7 @@ export const syncPlaylist = async (req: Request, res: Response) => {
         and store them on /tmp/job_123/ , the client polls until job is finished 
         then stream the songs back to the client 
     */
-    const { videoIds }: RequestBodyType = req.body;
+    const { localVideoIds } = req.body;
 
     const access_token = req.access_token;
     if (!access_token) throw ERRORS.NOTFOUND("token not found");
@@ -57,55 +57,13 @@ export const syncPlaylist = async (req: Request, res: Response) => {
 
     const vidIds = await getVideoIds(service, playlistId as string);
 
+    // res.status(200).json(vidIds);
     if (!vidIds || vidIds.length === 0)
         throw ERRORS.NOTFOUND("No Videos Found!");
 
-    scheduleBreeSyncPlaylistJob(playlistId as string, []);
+    scheduleBreeSyncPlaylistJob(vidIds, []); // for now the local videoIds are empty
 
     res.status(200).json({
         message: "scheduled a job for you, come back later 🕔",
     });
 };
-
-// util
-
-async function getVideoIds(service: youtube_v3.Youtube, playlistId: string) {
-    const videos = await service.playlistItems.list({
-        playlistId: playlistId,
-        part: ["snippet"],
-    });
-    return videos.data.items
-        ?.map((vid) => vid.id)
-        .filter((id) => id !== undefined && id !== null);
-}
-
-async function getFormattedPlaylists(service: youtube_v3.Youtube) {
-    const playlists = await service.playlists.list({
-        part: ["snippet", "contentDetails"],
-        mine: true,
-        maxResults: 100,
-    });
-    const playlistObjs = playlists.data.items
-        ?.map((pl) => {
-            if (
-                !pl.id ||
-                !pl.snippet ||
-                !pl.snippet.thumbnails ||
-                !pl.contentDetails
-            )
-                return;
-            const playlist: Playlist = {
-                id: pl.id,
-                url: `https://www.youtube.com/playlist?list=${pl.id}`,
-                title: pl.snippet.title ?? "",
-                description: pl.snippet.description ?? "",
-                publishedAt: new Date(pl.snippet.publishedAt ?? ""),
-                numOfVids: pl.contentDetails.itemCount ?? 0,
-                thumbnailUrl: pl.snippet.thumbnails.maxres?.url ?? "",
-            };
-            return playlist;
-        })
-        .filter((pl) => pl !== undefined);
-
-    return playlistObjs;
-}
