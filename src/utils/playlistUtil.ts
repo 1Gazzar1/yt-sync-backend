@@ -1,4 +1,5 @@
 import type { Playlist } from "@/types/types.js";
+import { execSync } from "child_process";
 import type { youtube_v3 } from "googleapis";
 
 // utils
@@ -49,4 +50,10 @@ export async function getFormattedPlaylists(service: youtube_v3.Youtube) {
         .filter((pl) => pl !== undefined);
 
     return playlistObjs;
+}
+
+export function getFileSize(path: string) {
+    const output = execSync(`du -sh "${path}"`).toString();
+
+    return output.split("\t")[0];
 }

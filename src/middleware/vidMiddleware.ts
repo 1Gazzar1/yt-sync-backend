@@ -1,6 +1,6 @@
 import { ERRORS } from "@/errors/error.js";
 import { NextFunction, Request, Response } from "express";
-import fs from "node:fs/promises";
+import fs from "fs";
 import path from "path";
 export async function folderExists(
     req: Request,
@@ -14,9 +14,8 @@ export async function folderExists(
         throw ERRORS.BAD_REQUEST("jobId not there");
     const p = path.resolve(`/tmp/job-${jobId}/`);
     try {
-        await fs.readdir(p);
+        return fs.existsSync(p);
     } catch (error) {
         throw ERRORS.BAD_REQUEST("jobId is wrong, job folder doesn't exist");
     }
-    next();
 }

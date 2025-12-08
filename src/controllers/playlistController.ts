@@ -2,11 +2,17 @@ import type { Request, Response } from "express";
 import { google } from "googleapis";
 import { ERRORS } from "@/errors/error.js";
 import { scheduleBreeSyncPlaylistJob } from "@/bg/index.js";
-import { getFormattedPlaylists, getVideoIds } from "@/utils/playlistUtil.js";
+import {
+    getFileSize,
+    getFormattedPlaylists,
+    getVideoIds,
+} from "@/utils/playlistUtil.js";
 import { randomBytes } from "crypto";
-import { fstat } from "fs";
 import { readFile } from "fs/promises";
-import { JobStatusFile } from "@/types/types.js";
+import { JobStatusFile, Video } from "@/types/types.js";
+import { getJobFiles } from "@/utils/vidUtil.js";
+import fs from "fs/promises";
+import { title } from "process";
 
 const oAuth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
@@ -15,14 +21,11 @@ const oAuth2Client = new google.auth.OAuth2(
 );
 
 export const getUserYTPlaylists = async (req: Request, res: Response) => {
-    // const token = req.token;
-    const { refresh_token } = req.body;
-
     const access_token = req.access_token;
     if (!access_token) throw ERRORS.NOTFOUND("token not found");
 
     // setting credentials for api access
-    oAuth2Client.setCredentials({ access_token, refresh_token });
+    oAuth2Client.setCredentials({ access_token });
 
     const service = google.youtube({
         version: "v3",
@@ -46,8 +49,13 @@ export const syncPlaylist = async (req: Request, res: Response) => {
     */
     const { localVideoIds } = req.body;
 
+    if (!localVideoIds && Array.isArray(localVideoIds))
+        throw ERRORS.BAD_REQUEST(
+            "localVideoIds property Not Found! or wrong format"
+        );
+
     const access_token = req.access_token;
-    if (!access_token) throw ERRORS.NOTFOUND("token not found");
+    if (!access_token) throw ERRORS.UNAUTHORIZED("access token not found!");
 
     const { playlistId } = req.query;
 
@@ -70,7 +78,7 @@ export const syncPlaylist = async (req: Request, res: Response) => {
     scheduleBreeSyncPlaylistJob(jobName, vidIds, localVideoIds);
 
     res.status(200).json({
-        message: "scheduled a job for you, come back later 🕔",
+        message: "scheduled a job for you <3, come back later 🕔",
         jobId: randomChars,
     });
 };
@@ -91,4 +99,27 @@ export const checkJobStatus = async (req: Request, res: Response) => {
     );
 
     res.status(200).json({ done: fileContent.status === "done" });
+};
+export const getJobMetadata = async (req: Request, res: Response) => {
+    // gets each video and it's title, size, thumbnail
+    // and total number of vids
+
+    const { jobId } = req.query;
+
+    if (!jobId || typeof jobId !== "string")
+        throw ERRORS.BAD_REQUEST("jobId not there");
+    const files = await getJobFiles(jobId);
+
+    const videos: Video[] = files.map((file) => {
+        return {
+            title: file,
+            size: getFileSize(`/tmp/job-${jobId}/${file}`),
+            thumbnail: "",
+        };
+    });
+    res.status(200).json({
+        jobId,
+        numOfVids: files.length,
+        videos,
+    });
 };

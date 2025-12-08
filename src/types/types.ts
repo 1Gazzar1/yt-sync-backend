@@ -8,7 +8,11 @@ export type Playlist = {
     numOfVids: number;
 };
 
-export type Video = {};
+export type Video = {
+    title: string;
+    size: string;
+    thumbnail: string;
+};
 
 export type JobStatusFile = {
     status: "done" | "processing";

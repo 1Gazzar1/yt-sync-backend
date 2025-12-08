@@ -6,6 +6,7 @@ import authRouter from "./routers/authRouter.js";
 import playlistRouter from "./routers/playlistRouter.js";
 import vidRouter from "./routers/vidRouter.js";
 import { verifyToken } from "@/middleware/authMiddleware.js";
+import { folderExists } from "./middleware/vidMiddleware.js";
 
 config();
 
@@ -21,8 +22,8 @@ app.get("/", (req, res) => {
 
 // routers
 app.use("/auth", authRouter);
-app.use("/playlist", verifyToken, playlistRouter);
-app.use("/vid", vidRouter);
+app.use("/playlist", playlistRouter);
+app.use("/vid", verifyToken, folderExists, vidRouter);
 
 app.listen(PORT, () => {
     console.log(`listening on port ${PORT}`);

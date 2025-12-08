@@ -57,7 +57,7 @@ export async function streamDirectoryOfSongs(
         console.log(`✅ ${file}`);
     }
 }
-async function getJobFiles(jobId: string) {
+export async function getJobFiles(jobId: string) {
     const p = path.resolve(`/tmp/job-${jobId}/`);
 
     const files = await fs.readdir(p);
