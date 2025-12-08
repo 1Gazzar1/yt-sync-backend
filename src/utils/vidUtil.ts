@@ -1,8 +1,9 @@
-import { createReadStream } from "node:fs";
+import { createReadStream, createWriteStream } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { ERRORS } from "@/errors/error.js";
 import { Response } from "express";
+import archiver from "archiver";
 
 export async function streamSong(
     writestream: Response,
@@ -34,28 +35,34 @@ export async function streamDirectoryOfSongs(
     writestream: Response,
     jobId: string
 ) {
-    const files = await getJobFiles(jobId);
-    for (const file of files) {
-        const p = path.resolve(`/tmp/job-${jobId}/`, file);
-        const stats = await fs.stat(p);
+    const archive = archiver("zip");
 
-        if (stats.isDirectory())
-            throw ERRORS.INTERNAL(
-                `This isn't supposed to happen?\n directory found at ${p}`
-            );
+    archive.pipe(writestream);
+    archive.directory(`/tmp/job-${jobId}/`, false);
+    archive.finalize();
+    console.log(`✅ job-${jobId}`);
 
-        const rs = createReadStream(p);
+    // for (const file of files) {
+    //     const p = path.resolve(`/tmp/job-${jobId}/`, file);
+    //     const stats = await fs.stat(p);
 
-        // we need a promise so we finish writing the ReadSteam to the WriteStream first
-        // so you don't write all 10 files at once, then it'll become corrupted
+    //     if (stats.isDirectory())
+    //         throw ERRORS.INTERNAL(
+    //             `This isn't supposed to happen?\n directory found at ${p}`
+    //         );
 
-        await new Promise((resolve) => {
-            rs.pipe(writestream, { end: false });
-            rs.on("end", resolve as any);
-        });
+    //     const rs = createReadStream(p);
 
-        console.log(`✅ ${file}`);
-    }
+    //     // we need a promise so we finish writing the ReadSteam to the WriteStream first
+    //     // so you don't write all 10 files at once, then it'll become corrupted
+
+    //     await new Promise((resolve) => {
+    //         rs.pipe(writestream, { end: false });
+    //         rs.on("end", resolve as any);
+    //     });
+
+    //     console.log(`✅ ${file}`);
+    // }
 }
 export async function getJobFiles(jobId: string) {
     const p = path.resolve(`/tmp/job-${jobId}/`);

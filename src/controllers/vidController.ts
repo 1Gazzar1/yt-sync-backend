@@ -9,7 +9,7 @@ export const getAllVidsByJobId = async (req: Request, res: Response) => {
 
     const jobId = req.params.jobId;
 
-    res.header("Content-Type", "audio/mpeg");
+    res.header("Content-Type", "application/zip");
 
     await streamDirectoryOfSongs(res, jobId);
 

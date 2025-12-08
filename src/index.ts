@@ -22,8 +22,8 @@ app.get("/", (req, res) => {
 
 // routers
 app.use("/auth", authRouter);
-app.use("/playlist", playlistRouter);
-app.use("/vid", verifyToken, folderExists, vidRouter);
+app.use("/playlist",verifyToken, playlistRouter);
+app.use("/vid", verifyToken, vidRouter);
 
 app.listen(PORT, () => {
     console.log(`listening on port ${PORT}`);
