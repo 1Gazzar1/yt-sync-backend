@@ -9,3 +9,11 @@ export type Playlist = {
 };
 
 export type Video = {};
+
+export type JobStatusFile = {
+    status: "done" | "processing";
+    numOfVids: number;
+    createdAt: number;
+    toBeDeletedAt?: number;
+    finishedAt?: number;
+};

@@ -3,6 +3,10 @@ import { google } from "googleapis";
 import { ERRORS } from "@/errors/error.js";
 import { scheduleBreeSyncPlaylistJob } from "@/bg/index.js";
 import { getFormattedPlaylists, getVideoIds } from "@/utils/playlistUtil.js";
+import { randomBytes } from "crypto";
+import { fstat } from "fs";
+import { readFile } from "fs/promises";
+import { JobStatusFile } from "@/types/types.js";
 
 const oAuth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
@@ -61,9 +65,30 @@ export const syncPlaylist = async (req: Request, res: Response) => {
     if (!vidIds || vidIds.length === 0)
         throw ERRORS.NOTFOUND("No Videos Found!");
 
-    scheduleBreeSyncPlaylistJob(vidIds, []); // for now the local videoIds are empty
+    const randomChars = randomBytes(4).toString("hex");
+    const jobName = `job-${randomChars}`;
+    scheduleBreeSyncPlaylistJob(jobName, vidIds, localVideoIds);
 
     res.status(200).json({
         message: "scheduled a job for you, come back later 🕔",
+        jobId: randomChars,
     });
+};
+
+export const checkJobStatus = async (req: Request, res: Response) => {
+    // checks the job's status by it's id
+    // get the job id from the query param
+    // it returns { done : True / False }
+
+    const { jobId } = req.query;
+
+    if (!jobId || typeof jobId !== "string")
+        throw ERRORS.BAD_REQUEST("jobId not there");
+
+    const statusFilePath = `/tmp/job-${jobId}/status.json`;
+    const fileContent: JobStatusFile = JSON.parse(
+        (await readFile(statusFilePath)).toString()
+    );
+
+    res.status(200).json({ done: fileContent.status === "done" });
 };

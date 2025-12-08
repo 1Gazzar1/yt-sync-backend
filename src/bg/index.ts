@@ -1,16 +1,10 @@
 import Bree from "bree";
 import path from "path";
-import { randomBytes } from "crypto";
 import { ERRORS } from "@/errors/error.js";
-import cron from "cron-validate";
 
 const bree = new Bree({
     root: false,
     jobs: [
-        // {
-        //     name: "download playlist",
-        //     path: path.resolve("dist/bg/jobs/syncSongs.js"),
-        // },
         {
             name: "clean up tmp folder",
             path: path.resolve("dist/bg/jobs/cleanup.js"),
@@ -23,32 +17,36 @@ const bree = new Bree({
 // util functions for scheduling jobs
 
 export async function scheduleBreeSyncPlaylistJob(
+    jobName: string,
     allVidIds: string[],
     localVideoIds: string[]
 ) {
     const p = path.resolve("dist/bg/jobs/syncSongs.js");
 
-    await scheduleBreeJob(p, {
+    await scheduleBreeJob(jobName, p, {
         allVidIds,
         localVideoIds,
     });
 }
 
-async function scheduleBreeJob(path: string, workerData: any) {
-    const randomChars = randomBytes(4).toString("hex");
-    const jobName = `job-${randomChars}`;
-
-    await bree.add({
-        name: jobName,
-        path,
-        worker: {
-            workerData: {
-                jobName,
-                ...workerData,
+async function scheduleBreeJob(jobName: string, path: string, workerData: any) {
+    try {
+        await bree.add({
+            name: jobName,
+            path,
+            worker: {
+                workerData: {
+                    jobName,
+                    ...workerData,
+                },
             },
-        },
-    });
-    bree.run(jobName);
+        });
+        bree.run(jobName);
+    } catch (error) {
+        throw ERRORS.INTERNAL(
+            `scheduling job failed, error: ${(error as Error).message}`
+        );
+    }
 }
 
 export default bree;
