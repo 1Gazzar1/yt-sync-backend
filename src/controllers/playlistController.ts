@@ -5,14 +5,13 @@ import { scheduleBreeSyncPlaylistJob } from "@/bg/index.js";
 import {
     getFileSize,
     getFormattedPlaylists,
+    getVideoIdFromMetadata,
     getVideoIds,
 } from "@/utils/playlistUtil.js";
 import { randomBytes } from "crypto";
 import { readFile } from "fs/promises";
 import { JobStatusFile, Video } from "@/types/types.js";
 import { getJobFiles } from "@/utils/vidUtil.js";
-import fs from "fs/promises";
-import { title } from "process";
 
 const oAuth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
@@ -111,10 +110,12 @@ export const getJobMetadata = async (req: Request, res: Response) => {
     const files = await getJobFiles(jobId);
 
     const videos: Video[] = files.map((file) => {
+        const id = getVideoIdFromMetadata(`/tmp/job-${jobId}/${file}`);
         return {
+            id: id,
             title: file,
             size: getFileSize(`/tmp/job-${jobId}/${file}`),
-            thumbnail: "",
+            thumbnail: `https://img.youtube.com/vi/${id}/maxresdefault.jpg`,
         };
     });
     res.status(200).json({

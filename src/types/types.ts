@@ -9,6 +9,7 @@ export type Playlist = {
 };
 
 export type Video = {
+    id: string;
     title: string;
     size: string;
     thumbnail: string;

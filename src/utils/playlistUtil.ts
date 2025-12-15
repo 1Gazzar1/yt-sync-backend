@@ -57,3 +57,7 @@ export function getFileSize(path: string) {
 
     return output.split("\t")[0];
 }
+
+export function getVideoIdFromMetadata(path: string): string {
+    return "";
+}
