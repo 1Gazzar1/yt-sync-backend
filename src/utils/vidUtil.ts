@@ -4,6 +4,7 @@ import path from "node:path";
 import { ERRORS } from "@/errors/error.js";
 import { Response } from "express";
 import archiver from "archiver";
+import { getVidIdFromMetadata } from "./metadata.js";
 
 export async function streamSong(
     writestream: Response,
@@ -13,12 +14,16 @@ export async function streamSong(
     // song id is the video id from yt
     const files = await getJobFiles(jobId);
 
-    const file = files.find((file) => {
-        const p = path.resolve(`/tmp/job-${jobId}/`, file);
-        // get 'purl' metadata from the song file
-        // return the song with the same id
+    const file = files.find(async (file) => {
+        const p = `/tmp/job-${jobId}/${file}`;
 
-        // return === jobId
+        const id = await getVidIdFromMetadata(p);
+        if (!id)
+            throw ERRORS.INTERNAL(
+                `metadata faulty, failed to parse 'purl' metadata at ${p}`
+            );
+
+        return id === songId;
     });
 
     if (!file) throw ERRORS.BAD_REQUEST("songId doesn't exist in that folder");

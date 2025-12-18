@@ -5,13 +5,13 @@ import { scheduleBreeSyncPlaylistJob } from "@/bg/index.js";
 import {
     getFileSize,
     getFormattedPlaylists,
-    getVideoIdFromMetadata,
     getVideoIds,
 } from "@/utils/playlistUtil.js";
 import { randomBytes } from "crypto";
 import { readFile } from "fs/promises";
 import { JobStatusFile, Video } from "@/types/types.js";
 import { getJobFiles } from "@/utils/vidUtil.js";
+import { getVidIdFromMetadata } from "@/utils/metadata.js";
 
 const oAuth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
@@ -109,15 +109,22 @@ export const getJobMetadata = async (req: Request, res: Response) => {
         throw ERRORS.BAD_REQUEST("jobId not there");
     const files = await getJobFiles(jobId);
 
-    const videos: Video[] = files.map((file) => {
-        const id = getVideoIdFromMetadata(`/tmp/job-${jobId}/${file}`);
-        return {
-            id: id,
-            title: file,
-            size: getFileSize(`/tmp/job-${jobId}/${file}`),
-            thumbnail: `https://img.youtube.com/vi/${id}/maxresdefault.jpg`,
-        };
-    });
+    const videos: Video[] = await Promise.all(
+        files.map(async (file) => {
+            const p = `/tmp/job-${jobId}/${file}`;
+            const id = await getVidIdFromMetadata(p);
+            if (!id)
+                throw ERRORS.INTERNAL(
+                    `metadata faulty, failed to parse 'purl' metadata`
+                );
+            return {
+                id: id,
+                title: file,
+                size: getFileSize(p),
+                thumbnail: `https://img.youtube.com/vi/${id}/maxresdefault.jpg`,
+            };
+        })
+    );
     res.status(200).json({
         jobId,
         numOfVids: files.length,
