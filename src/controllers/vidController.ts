@@ -12,8 +12,6 @@ export const getAllVidsByJobId = async (req: Request, res: Response) => {
     res.header("Content-Type", "application/zip");
 
     await streamDirectoryOfSongs(res, jobId);
-
-    res.end();
 };
 export const getVidByJobIdAndSongId = async (req: Request, res: Response) => {
     // get the jobId and songId from path params
@@ -27,6 +25,4 @@ export const getVidByJobIdAndSongId = async (req: Request, res: Response) => {
     res.header("Content-Type", "audio/mpeg");
 
     await streamSong(res, jobId, songId);
-
-    res.end();
 };

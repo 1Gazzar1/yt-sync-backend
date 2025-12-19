@@ -2,8 +2,8 @@
 
 ## TO-DO
 
-1. find a way to extract mp3 metadata and fix the /:jobId/:songId endpoint
-2. test the cleanup.js job
+1. test the cleanup.js job
+2. implement rate limiting
 
 ### When making the client make sure you
 
