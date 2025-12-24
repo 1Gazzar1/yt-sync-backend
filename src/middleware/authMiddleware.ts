@@ -3,8 +3,8 @@ import { ERRORS } from "@/errors/error.js";
 
 export const verifyToken = async (
     /* 
-    check if the user if authorized by verifying their id token (jwt)
-    if not verified throw a 401 else setup user info in req
+    check if the user if authorized by verifying their access token 
+    if not verified throw a 401 
     then later refresh the access token
     */
     req: Request,
@@ -20,6 +20,7 @@ export const verifyToken = async (
     const response = await fetch(
         `https://oauth2.googleapis.com/tokeninfo?access_token=${_token}`
     );
+    console.log(response);
     if (!response.ok) throw ERRORS.UNAUTHORIZED("Token expired! 💩");
 
     req.access_token = _token;
