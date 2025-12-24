@@ -48,7 +48,9 @@ export const auth2Callback = async (req: Request, res: Response) => {
     const { code } = req.query;
     const { tokens } = await oauth2Client.getToken(code as string);
     console.log(tokens);
-    res.send(`<h1> yo, good job 👍 </h1> <h2> this is your tokens </h2>`);
+    res.redirect(
+        `yt_sync_android://home?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}&id_token=${tokens.id_token}`
+    );
 };
 
 export const revokeToken = async (req: Request, res: Response) => {
