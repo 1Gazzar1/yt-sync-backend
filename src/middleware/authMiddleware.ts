@@ -20,7 +20,7 @@ export const verifyToken = async (
     const response = await fetch(
         `https://oauth2.googleapis.com/tokeninfo?access_token=${_token}`
     );
-    console.log(response);
+    // console.log(response);
     if (!response.ok) throw ERRORS.UNAUTHORIZED("Token expired! 💩");
 
     req.access_token = _token;

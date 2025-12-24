@@ -1,0 +1,8 @@
+services:
+  yt_sync_app_api:
+    image: image name # i will replace it when i push it to docker hub. 
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    
