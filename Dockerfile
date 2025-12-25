@@ -5,15 +5,9 @@ WORKDIR /app
 COPY  package*.json ./
 
 # install python and pip
-RUN apk add --no-cache python3 py3-pip
-
-RUN apk add pipx 
-
-RUN pipx install yt-dlp[default]
+RUN apk add --no-cache python3 py3-pip ffmpeg yt-dlp
 
 RUN npm ci
-
-RUN PATH="$PATH:/root/.local/bin" 
 
 COPY . . 
 
