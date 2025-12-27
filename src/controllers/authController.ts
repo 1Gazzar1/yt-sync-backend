@@ -22,9 +22,10 @@ export const getAuthUrl = (req: Request, res: Response) => {
         scope: scopes,
         prompt: "consent",
     });
-
+    const state = Buffer.from(process.env.HOST_IP).toString("base64");
+    const finalUrl = `${url}&state=${state}`;
     res.status(200).json({
-        url,
+        finalUrl,
     });
     // res.redirect(url);
 };
