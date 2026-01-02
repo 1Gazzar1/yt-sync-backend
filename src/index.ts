@@ -6,13 +6,18 @@ import authRouter from "./routers/authRouter.js";
 import playlistRouter from "./routers/playlistRouter.js";
 import vidRouter from "./routers/vidRouter.js";
 import { verifyToken } from "@/middleware/authMiddleware.js";
-import { folderExists } from "./middleware/vidMiddleware.js";
+import cors from "cors";
 
 config();
 
 const app = express();
 const PORT = process.env.PORT;
 
+app.use(
+    cors({
+        origin: "*",
+    })
+);
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -22,7 +27,7 @@ app.get("/", (req, res) => {
 
 // routers
 app.use("/auth", authRouter);
-app.use("/playlist",verifyToken, playlistRouter);
+app.use("/playlist", verifyToken, playlistRouter);
 app.use("/vid", verifyToken, vidRouter);
 
 app.listen(PORT, () => {

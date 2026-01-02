@@ -22,8 +22,12 @@ export const getAuthUrl = (req: Request, res: Response) => {
         scope: scopes,
         prompt: "consent",
     });
-    const state = Buffer.from(process.env.HOST_IP).toString("base64");
-    const finalUrl = `${url}&state=${state}`;
+    let finalUrl: string;
+    if (process.env.HOST_IP) {
+        const state = Buffer.from(process.env.HOST_IP).toString("base64");
+        finalUrl = `${url}&state=${state}`;
+    }
+    finalUrl = url;
     res.status(200).json({
         finalUrl,
     });
@@ -47,11 +51,29 @@ export const refreshToken = async (req: Request, res: Response) => {
 
 export const auth2Callback = async (req: Request, res: Response) => {
     const { code } = req.query;
+    // const { tokens } = await oauth2Client.getToken(code as string);
+    // console.log(tokens);
+    // const HOST_IP_WITHOUT_PORT = process.env.HOST_IP.split(":")[0];
+    // const appUrl = `exp://${HOST_IP_WITHOUT_PORT}:8081/--/home?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}&id_token=${tokens.id_token}`;
+    res.send(`
+      <html>
+        <body style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; font-family:sans-serif;">
+          <h1>DEEP LINKING IS BROKEN , IDK WHY!!!!!!</h1>
+          <h2>THIS IS THE MOST INSECURE SHIT OF ALL TIME</h2>
+          <h2 style="padding:15px 25px; background:#cc0000; color:white; text-decoration:none; border-radius:10px; font-weight:bold;">
+            Your Code is: ${code}
+          </h2>
+        </body>
+      </html>
+    `);
+};
+export const getTokens = async (req: Request, res: Response) => {
+    const { code } = req.query;
     const { tokens } = await oauth2Client.getToken(code as string);
     console.log(tokens);
-    res.redirect(
-        `yt_sync_android://home?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}&id_token=${tokens.id_token}`
-    );
+    const HOST_IP_WITHOUT_PORT = process.env.HOST_IP.split(":")[0];
+    // const appUrl = `exp://${HOST_IP_WITHOUT_PORT}:8081/--/home?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}&id_token=${tokens.id_token}`;
+    res.status(200).json(tokens);
 };
 
 export const revokeToken = async (req: Request, res: Response) => {
