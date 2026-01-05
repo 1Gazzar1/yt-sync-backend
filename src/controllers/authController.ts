@@ -23,11 +23,12 @@ export const getAuthUrl = (req: Request, res: Response) => {
         prompt: "consent",
     });
     let finalUrl: string;
+    finalUrl = url;
     if (process.env.HOST_IP) {
         const state = Buffer.from(process.env.HOST_IP).toString("base64");
         finalUrl = `${url}&state=${state}`;
     }
-    finalUrl = url;
+    
     res.status(200).json({
         finalUrl,
     });
